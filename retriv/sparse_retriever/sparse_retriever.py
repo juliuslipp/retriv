@@ -307,13 +307,15 @@ class SparseRetriever(BaseRetriever):
 
         return self.prepare_results(unique_doc_ids, scores)
 
-    def msearch(self, queries: List[Dict[str, str]], cutoff: int = 100) -> Dict:
+    def msearch(self, queries: List[Dict[str, str]], cutoff: int = 100, return_docs: bool = False) -> Dict:
         """Compute results for multiple queries at once.
 
         Args:
             queries (List[Dict[str, str]]): what to search for.
 
             cutoff (int, optional): number of results to return. Defaults to 100.
+
+            return_docs (bool, optional): whether to return the texts of the documents. Defaults to False.
 
         Returns:
             Dict: results.
@@ -367,9 +369,15 @@ class SparseRetriever(BaseRetriever):
             for _unique_doc_ids in unique_doc_ids
         ]
 
-        results = {
-            q: dict(zip(unique_doc_ids[i], scores[i])) for i, q in enumerate(q_ids)
-        }
+        if not return_docs:
+            results = {
+                q: dict(zip(unique_doc_ids[i], scores[i])) for i, q in enumerate(q_ids)
+            }
+        else:
+            results = {
+                q: self.prepare_results(unique_doc_ids[i], scores[i])
+                for i, q in enumerate(q_ids)
+            }
 
         for q_id in no_results_q_ids:
             results[q_id] = {}

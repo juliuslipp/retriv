@@ -261,6 +261,7 @@ class DenseRetriever(BaseRetriever):
         queries: List[Dict[str, str]],
         cutoff: int = 100,
         batch_size: int = 32,
+        return_docs: bool = False,
     ) -> Dict:
         """Compute results for multiple queries at once.
 
@@ -270,6 +271,8 @@ class DenseRetriever(BaseRetriever):
             cutoff (int, optional): number of results to return. Defaults to 100.
 
             batch_size (int, optional): how many queries to search at once. Regulate it if you ran into memory usage issues or want to maximize throughput. Defaults to 32.
+
+            return_docs (bool, optional): whether to return the texts of the documents. Defaults to False.
 
         Returns:
             Dict: results.
@@ -291,6 +294,16 @@ class DenseRetriever(BaseRetriever):
         doc_ids = [
             self.map_internal_ids_to_original_ids(_doc_ids) for _doc_ids in doc_ids
         ]
+
+        if not return_docs:
+            results = {
+                q: dict(zip(doc_ids[i], scores[i])) for i, q in enumerate(q_ids)
+            }
+        else:
+            results = {
+                q: self.prepare_results(doc_ids[i], scores[i])
+                for i, q in enumerate(q_ids)
+            }
 
         results = {q: dict(zip(doc_ids[i], scores[i])) for i, q in enumerate(q_ids)}
 
